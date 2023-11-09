@@ -1,0 +1,182 @@
+SELECT * FROM limpieza
+
+SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'limpieza' -- conocer el tipo de datos de cada columna
+
+--Total de empleados
+
+select 
+	COUNT(ID) AS cantidad_empleados 
+From limpieza
+
+--salario promedio de la empresa
+
+SELECT 
+    AVG(CAST(Salario AS DECIMAL(10,2))) AS promedio_salarial
+FROM 
+    limpieza;
+
+-- empleados con salario mayor a 100.000
+
+SELECT
+    ID,
+    Nombre,
+    Apellido,
+    Salario
+FROM
+    limpieza
+WHERE
+    Salario > 100000
+ORDER BY
+    Salario ASC;
+
+
+--cantidad de empleados con salario mayor a 100.000
+
+WITH base AS (
+    SELECT
+        ID,
+        Nombre,
+        Apellido,
+        Salario
+    FROM
+        limpieza
+    WHERE
+        Salario > 100000
+)
+SELECT
+    COUNT(ID) AS Cantidad
+FROM
+    base;
+
+-- empleados con sueldo superior al promedio
+
+SELECT
+    ID,
+    Nombre,
+    Apellido,
+    Salario
+FROM
+    limpieza
+WHERE
+    Salario > (SELECT AVG(CAST(salario AS DECIMAL(10,2))) FROM limpieza)
+ORDER BY
+    Salario ASC;
+
+
+-- cantidad de empleados con salario mayor al promedio
+
+WITH base_avg AS (
+    SELECT
+        ID,
+        Nombre,
+        Apellido,
+        Salario
+    FROM
+        limpieza
+    WHERE
+        Salario > (SELECT AVG(CAST(Salario AS DECIMAL(10,2))) FROM limpieza)
+)
+SELECT
+    COUNT(ID) AS cantidad
+FROM
+    base_avg;
+
+
+--porcentaje de distribucion en cuanto a genero
+
+SELECT 
+    Genero,
+    COUNT(Genero) AS cantidad,
+    CONCAT(ROUND(COUNT(genero) * 100 / (SELECT COUNT(genero) FROM limpieza), 2), '%') AS porcentaje
+FROM
+    limpieza
+GROUP BY
+    Genero;
+
+--edad
+
+SELECT
+    Nombre,
+    Apellido,
+    fecha_cumpleaños,
+    DATEDIFF(year, Fecha_cumpleaños, GETDATE()) AS edad
+FROM
+    limpieza
+ORDER BY
+    edad DESC;
+
+
+--areas con mas trabajadores
+
+SELECT
+    Area,
+    COUNT(ID) AS cantidad --se cuenta los ID ya es una clave priamria
+FROM
+    limpieza
+GROUP BY
+    Area;
+
+--empleados que trabajan de forma remota
+
+SELECT 
+    ID,
+    Nombre,
+    Apellido
+FROM
+    limpieza
+WHERE
+    Tipo = 'remoto';
+
+-- cantidad de empleados que trabajan de forma remota
+
+WITH count_rem AS (
+    SELECT
+        ID
+    FROM
+        limpieza
+    WHERE
+        Tipo = 'remoto'
+)
+SELECT
+    COUNT(ID) AS cantidad
+FROM
+    count_rem;
+
+
+-- porcentaje de empleados que trabajan de forma remota
+
+WITH count_rem AS (
+    SELECT
+        ID
+    FROM
+        limpieza
+    WHERE
+        Tipo = 'remoto'
+)
+SELECT
+    COUNT(ID) * 100 / (SELECT COUNT(ID) FROM limpieza) AS porcentaje
+FROM
+    count_rem;
+
+
+-- cantidad de empleados cuya fecha de inicio es mayor al 2010
+
+WITH year_cant AS (
+    SELECT
+        ID,
+        year_date
+    FROM
+        (
+            SELECT
+                ID,
+                YEAR(Fecha_inicio) AS year_date
+            FROM
+                limpieza
+        ) AS subquery
+    WHERE
+        year_date > YEAR('2010')
+)
+SELECT
+    COUNT(ID) AS cantidad
+FROM
+    year_cant;
